@@ -3,14 +3,24 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "ng serve",
+      "name": "ng serve (Firefox)",
+      "type": "firefox",
+      "request": "launch",
+      "reAttach": true,
+      "preLaunchTask": "npm: start",
+      "url": "http://localhost:4200/",
+      "webRoot": "${workspaceFolder}/src/",
+      "skipFiles": [ "${workspaceFolder}/src/assets/**/*.js" ]
+    },
+    {
+      "name": "ng serve (Edge)",
       "type": "pwa-chrome",
       "request": "launch",
       "preLaunchTask": "npm: start",
       "url": "http://localhost:4200/"
     },
     {
-      "name": "ng test",
+      "name": "ng test (Chrome)",
       "type": "chrome",
       "request": "launch",
       "preLaunchTask": "npm: test",

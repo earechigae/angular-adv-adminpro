@@ -851,9 +851,10 @@ sidebar navigation
       .sidebar-nav > ul > li.active > a i {
         color: #398bf7; }
   .sidebar-nav .waves-effect {
-    transition: none;
+    -o-transition: none;
     -webkit-transition: none;
-    -o-transition: none; }
+    transition: none;
+  }
 
 .sidebar-nav .has-arrow {
   position: relative; }
@@ -1673,7 +1674,9 @@ html body .waves-notransition {
   height: 2.5em;
   line-height: 2.5em;
   border-radius: 50%;
-  -webkit-mask-image: none; }
+  -webkit-mask-image: none; 
+  mask-image: none;
+}
 
 .waves-input-wrapper {
   border-radius: 0.2em;
