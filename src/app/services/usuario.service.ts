@@ -7,6 +7,7 @@ import { LoginForm } from '../interfaces/login-form.interface';
 import { environment } from 'src/environments/environment.development';
 import { Observable, of } from 'rxjs';
 import { Router } from '@angular/router';
+import { Usuario } from '../models/usuario.model';
 
 declare const google: any;
 const base_url = environment.base_url;
@@ -16,21 +17,38 @@ const base_url = environment.base_url;
 })
 export class UsuarioService {
 
+  public usuario: Usuario | undefined;
+
   constructor(private http: HttpClient, 
               private router: Router, 
               private ngZone: NgZone) { 
-    this.googleInit();
+    this.googleInit()
+      .then(resultado => {
+        console.log('Inicialización de Google terminada')
+      });
   }
 
-  googleInit(){
-    google.accounts.id.initialize({
-      client_id: "678739285585-2mkugdmku0q5r7d4njkpc6q4oq5j4jrv.apps.googleusercontent.com",
-      callback: (response: any) => this.handleCredentialResponse(response)
-    });
+  get token(): string {
+    return localStorage.getItem('token') || '';
   }
 
   get google(){
     return google;
+  }
+
+  get uid(){
+    return this.usuario?.uid || '';
+  }
+
+  async googleInit(){
+    return new Promise( resolve => {
+      console.log('Inicializando Google ...')
+      google.accounts.id.initialize({
+        client_id: "678739285585-2mkugdmku0q5r7d4njkpc6q4oq5j4jrv.apps.googleusercontent.com",
+        callback: (response: any) => this.handleCredentialResponse(response)
+      });
+      resolve('');
+    });
   }
 
   handleCredentialResponse(response: any){
@@ -52,6 +70,14 @@ export class UsuarioService {
     );
   }
 
+  actualizarPerfil( data: {email: string, nombre: string}){
+    return this.http.put(`${base_url}/usuarios/${this.uid}`, data, {
+      headers: {
+        'x-token': this.token
+      }
+    });
+  }
+
   login( formData: LoginForm){
     return this.http.post(`${base_url}/login`, formData)
     .pipe(
@@ -71,24 +97,26 @@ export class UsuarioService {
   }
 
   validarToken(): Observable<boolean> {
-    const token = localStorage.getItem('token') || '';
-
     return this.http.get(`${base_url}/login/renew`, {
       headers: {
-        'x-token': token
+        'x-token': this.token
       }
     }).pipe(
-      tap( (resp: any) => {
+      //tap( (resp: any) => {  // Optimizando, el tap puede ser ejecutado despues del map
+      map( (resp: any) => {
+        const { email, google, nombre, role, img = '', uid } = resp.usuario; 
+        this.usuario = new Usuario(nombre, email, '', role, google, img, uid);
         localStorage.setItem('token', resp.token);
+        return true;
       }),
-      map( resp => true), 
+      //map( resp => true), // El map puede que se llegue a ejecutar antes que el tap. 
       catchError( error => of(false))
     );
   }
 
   logout(){
     localStorage.removeItem('token');
-    google.accounts.id.revoke('earechigae@gmail.com', () => {
+    google.accounts.id.revoke(this.usuario?.email, () => {
       this.ngZone.run( () => {
         this.router.navigateByUrl('/login');
       })
