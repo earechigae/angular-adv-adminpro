@@ -82,6 +82,5 @@ export class PerfilComponent implements OnInit{
 
   cancelarSubirImagen(){
     this.imgTemp = null;
-    
   }
 }
