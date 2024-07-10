@@ -1,7 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import Swal from 'sweetalert2'
+import { Medico } from 'src/app/models/medico.model';
 import { Usuario } from 'src/app/models/usuario.model';
-import { CargarUsuario } from 'src/app/interfaces/cargar-usuario.interface';
+import { Hospital } from 'src/app/models/hospital.model';
 import { UsuarioService } from 'src/app/services/usuario.service';
 import { BusquedasService } from 'src/app/services/busquedas.service';
 import { ModalImagenService } from 'src/app/services/modal-imagen.service';
@@ -43,7 +44,7 @@ export class UsuariosComponent implements OnInit, OnDestroy{
       this.imgSubs?.unsubscribe();
     }
     
-    cargarUsuarios(){
+  cargarUsuarios(){
     this.cargando = true;
     this.usuarioService.cargarUsuarios(this.desde)
     .subscribe( ({total, usuarios}) => {
@@ -73,8 +74,8 @@ export class UsuariosComponent implements OnInit, OnDestroy{
     }
 
     this.busquedasService.buscar('usuarios', termino)
-      .subscribe(usuarios => { 
-        this.usuarios = usuarios; 
+      .subscribe((usuarios: Usuario[] | Hospital[] | Medico[]) => { 
+        this.usuarios = usuarios as Usuario[]; 
       })
   }
 

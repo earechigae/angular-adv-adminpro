@@ -23,6 +23,5 @@ export class Usuario {
         }else{
             return `${base_url}/subir-archivos/usuarios/no-image`;
         }
-
     }
 }

@@ -20,9 +20,9 @@ export class UsuarioService {
 
   public usuario: Usuario | undefined;
 
-  constructor(private http: HttpClient, 
-              private router: Router, 
-              private ngZone: NgZone) { 
+  constructor(private http: HttpClient,
+              private router: Router,
+              private ngZone: NgZone) {
     this.googleInit()
       .then(resultado => {
         console.log('Inicialización de Google terminada')
@@ -31,6 +31,10 @@ export class UsuarioService {
 
   get token(): string {
     return localStorage.getItem('token') || '';
+  }
+
+  get role(): string {
+    return this.usuario?.role || 'USER_ROLE';
   }
 
   get google(){
@@ -67,14 +71,14 @@ export class UsuarioService {
           this.router.navigateByUrl('/dashboard');
         })
       });
-  } 
+  }
 
   crearUsuario( formData: RegisterForm){
     console.log('Creando usuario ... ');
     return this.http.post(`${base_url}/usuarios`, formData)
     .pipe(
       tap( (resp: any) => {
-        localStorage.setItem('token', resp.token)
+        this.guardarEnLocalStorage(resp.token, resp.menu);
       })
     );
   }
@@ -92,7 +96,7 @@ export class UsuarioService {
     return this.http.post(`${base_url}/login`, formData)
     .pipe(
       tap( (resp: any) => {
-        localStorage.setItem('token', resp.token)
+        this.guardarEnLocalStorage(resp.token, resp.menu);
       })
     );
   }
@@ -101,7 +105,7 @@ export class UsuarioService {
     return this.http.post(`${base_url}/login/google`, {token})
     .pipe(
       tap( (resp: any) => {
-        localStorage.setItem('token', resp.token)
+        this.guardarEnLocalStorage(resp.token, resp.menu);
       })
     );
   }
@@ -114,18 +118,20 @@ export class UsuarioService {
     }).pipe(
       //tap( (resp: any) => {  // Optimizando, el tap puede ser ejecutado despues del map
       map( (resp: any) => {
-        const { email, google, nombre, role, img = '', uid } = resp.usuario; 
+        const { email, google, nombre, role, img = '', uid } = resp.usuario;
         this.usuario = new Usuario(nombre, email, '', role, google, img, uid);
-        localStorage.setItem('token', resp.token);
+        this.guardarEnLocalStorage(resp.token, resp.menu);
         return true;
       }),
-      //map( resp => true), // El map puede que se llegue a ejecutar antes que el tap. 
+      //map( resp => true), // El map puede que se llegue a ejecutar antes que el tap.
       catchError( error => of(false))
     );
   }
 
   logout(){
     localStorage.removeItem('token');
+    localStorage.removeItem('menu');
+
     google.accounts.id.revoke(this.usuario?.email, () => {
       this.ngZone.run( () => {
         this.router.navigateByUrl('/login');
@@ -135,19 +141,19 @@ export class UsuarioService {
 
   cargarUsuarios(desde: number = 0){
     const url = `${base_url}/usuarios?desde=${desde}`;
-    
+
     //return this.http.get<{total: Number, usuarios: Usuario[]}>(url, this.headers);
     return this.http.get<CargarUsuario>(url, this.headers)
             .pipe(
               delay(500),
               map( resp => {
-                const usuarios = resp.usuarios.map( user => new Usuario(                  
+                const usuarios = resp.usuarios.map( user => new Usuario(
                       user.nombre,
                       user.email,
                       '',
-                      user.role, 
+                      user.role,
                       user.google,
-                      user.img,                    
+                      user.img,
                       user.uid) )
                 return {
                   total: resp.total,
@@ -155,7 +161,7 @@ export class UsuarioService {
                 };
               })
             )
-    
+
   }
 
   eliminarUsuario(usuario: Usuario){
@@ -164,5 +170,11 @@ export class UsuarioService {
 
   guardarUsuario(usuario: Usuario){
     return this.http.put(`${base_url}/usuarios/${usuario.uid}`, usuario, this.headers);
+  }
+
+
+  guardarEnLocalStorage(token: string, menu: any){
+    localStorage.setItem('token', token);
+    localStorage.setItem('menu', JSON.stringify(menu));
   }
 }

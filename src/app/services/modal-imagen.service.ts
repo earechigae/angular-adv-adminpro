@@ -12,7 +12,7 @@ export class ModalImagenService {
   public tipo: 'usuarios'|'medicos'|'hospitales' = 'usuarios';
   public id: string | undefined = '' ;
   public img: string = '';
-  public nuevaImagen: EventEmitter<String> = new EventEmitter<String>();
+  public nuevaImagen: EventEmitter<string> = new EventEmitter<string>();
   
   constructor() { }
 
@@ -28,7 +28,7 @@ export class ModalImagenService {
     this._ocultarModal = false;
     this.tipo = tipo;
     this.id = id;
-    this.img = img || 'no-image'; 
+    this.img = img ?? 'no-image'; 
 
     if(img?.includes('https')){
       this.img = img;

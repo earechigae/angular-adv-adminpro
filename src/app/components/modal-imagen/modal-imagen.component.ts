@@ -47,10 +47,11 @@ export class ModalImagenComponent {
     const tipo = this.modalImagenService.tipo;
 
     if(this.imagenSubir != undefined){
-      this.subirArchivosService.actualizarFoto(this.imagenSubir, tipo, id || '')
+      this.subirArchivosService.actualizarFoto(this.imagenSubir, tipo, id ?? '')
         .then(img => {
             Swal.fire('Guardado', `Imagen de ${tipo} actualizada`, 'success');
             this.modalImagenService.nuevaImagen.emit(img);
+            console.log('Emitido: ', img);
             this.cerrarModal();
         }).catch( err => {
           console.log(err);
